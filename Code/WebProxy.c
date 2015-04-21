@@ -81,6 +81,10 @@ void parse_url(char *url_name, char *host_name, int *port, char *path)
 char *url_blacklist[] = { "www.facebook.com", "www.youtube.com", "www.hulu.com","www.virus.com" };
 int url_blacklist_len = 4;
 
+// list of black-listed words for content filtering
+// any content in which any of these words occure, will be blocked
+char *word_blacklist[] = {"Alcoholic","Amateur","Analphabet","Anarchist","Ape","Arse","Arselicker","Ass","Ass master","Ass-kisser","Ass-nugget","Ass-wipe","Asshole","Baby","Backwoodsman","Balls","Bandit","Barbar","Bastard","Bastard","Beavis","Beginner","Biest","Bitch","Blubber gut","Bogeyman","Booby","Boozer","Bozo","Brain-fart","Brainless","Brainy","Brontosaurus","Brownie","Bugger","Bugger, silly","Bulloks","Bum","Bum-fucker","Butt","Buttfucker","Butthead","Callboy","Callgirl","Camel","Cannibal","Cave man","Chaavanist","Chaot","Chauvi","Cheater","Chicken","Children fucker","Clit","Clown","Cock","Cock master","Cock up","Cockboy","Cockfucker","Cockroach","Coky","Con merchant","Con-man","Country bumpkin","Cow","Creep","Creep","Cretin","Criminal","Cunt","Cunt sucker","Daywalker","Deathlord","Derr brain","Desperado","Devil","Dickhead","Dinosaur","Disguesting packet","Diz brain","Do-Do","Dog","Dog, dirty","Dogshit","Donkey","Drakula","Dreamer","Drinker","Drunkard","Dufus","Dulles","Dumbo","Dummy","Dumpy","Egoist","Eunuch","Exhibitionist","Fake","Fanny","Farmer","Fart","Fart, shitty","Fatso","Fellow","Fibber","Fish","Fixer","Flake","Flash Harry","Freak","Frog","Fuck","Fuck face","Fuck head","Fuck noggin","Fucker","Head, fat","Hell dog","Hillbilly","Hooligan","Horse fucker","Idiot","Ignoramus","Jack-ass","Jerk","Joker","Junkey","Killer","Lard face","Latchkey child","Learner","Liar","Looser","Lucky","Lumpy","Luzifer","Macho","Macker","Man, old","Minx","Missing link","Monkey","Monster","Motherfucker","Mucky pub","Mutant","Neanderthal","Nerfhearder","Nobody","Nurd","Nuts, numb","Oddball","Oger","Oil dick","Old fart","Orang-Uthan","Original","Outlaw","Pack","Pain in the ass","Pavian","Pencil dick","Pervert","Pig","Piggy-wiggy","Pirate","Pornofreak","Prick","Prolet","Queer","Querulant","Rat","Rat-fink","Reject","Retard","Riff-Raff","Ripper","Roboter","Rowdy","Rufian","Sack","Sadist","Saprophyt","Satan","Scarab","Schfincter","Shark","Shit eater","Shithead","Simulant","Skunk","Skuz bag","Slave","Sleeze","Sleeze bag","Slimer","Slimy bastard","Small pricked","Snail","Snake","Snob","Snot","Son of a bitch ","Square","Stinker","Stripper","Stunk","Swindler","Swine","Teletubby","Thief","Toilett cleaner","Tussi","Typ","Unlike","Vampir","Vandale","Varmit","Wallflower","Wanker","Wanker, bloody","Weeze Bag","Whore","Wierdo","Wino","Witch","Womanizer","Woody allen","Worm","Xena","Xenophebe","Xenophobe","XXX Watcher","Yak","Yeti","Zit face"};
+int word_blacklist_len = 237;
 
 int main(int argc, char **argv)
 {
@@ -343,6 +347,31 @@ accepting:
                 }
                 
                 
+                // FILTER CONTENTS
+                // as we recieve the response, check if it has any black-listed
+                // word or not
+                // for each swear word
+                for(i = 0; i < word_blacklist_len; i++)
+                {
+                    // if the swear word occurs in the content
+                    if(NULL != strstr(buffer, word_blacklist[i]))
+                    {
+#ifdef DEBUG
+                        printf("\t-> content in blacklist: %s\n", word_blacklist[i]);
+#endif
+                        
+                        close(cfd);
+                        
+                        // remove the cache file
+                        sprintf(filepath, "./cache/%s", filter_urld);
+                        remove(filepath);
+                        
+                        // tell the browser why we are not providing the content
+                        sprintf(buffer,"400 : BAD REQUEST\nCONTENT FOUND IN BLACKLIST\n%s", word_blacklist[i]);
+                        send(newsockfd, buffer, strlen(buffer), 0);		// send to browser
+                        goto end;
+                    }
+                }
                 
               
             }
