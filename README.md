@@ -8,8 +8,9 @@ A computer networks project
 
 2.	The following commands are used send request through any browser client:
 
- <ip appress>:<port number>/Url
- Eg: 120.129.151.94:3333/www.google.com
+       ip appress:port number/Url
+       
+       Eg: 120.129.151.94:3333/www.google.com
 
 NOTE: 
 i.	Replace port number with a value less than 5000.
